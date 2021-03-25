@@ -5,6 +5,7 @@ on:
     # Publish `master` as Docker `latest` image.
     branches:
       - master
+      - fix-build
 
   # Run tests for any PRs.
   pull_request:
@@ -19,15 +20,20 @@ jobs:
   # See also https://docs.docker.com/docker-hub/builds/
   push:
 
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-18.04
     if: github.event_name == 'push'
 
     steps:
       - uses: actions/checkout@v2
 
+      - name: Setup docker buildx
+        run: |
+          docker run --privileged --rm tonistiigi/binfmt --install all
+          # docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+          docker buildx create --use
+
       - name: Build image
         run: |
-          docker buildx create --use
           docker buildx build --platform linux/amd64,linux/arm64,linux/arm64/v8 . --file simple/Dockerfile --tag $IMAGE_NAME
 
       - name: Log into registry
