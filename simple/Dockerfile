@@ -76,34 +76,35 @@ RUN apt-get update -qq > /dev/null && \
         zip \
         zlib1g-dev > /dev/null && \
     echo "set timezone" && \
-    ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone && \
-    echo "nodejs, npm, cordova, ionic, react-native" && \
-    curl -sL -k https://deb.nodesource.com/setup_${NODE_VERSION} \
-        | bash - > /dev/null && \
-    apt-get install -qq nodejs > /dev/null && \
-    apt-get clean > /dev/null && \
-    curl -sS -k https://dl.yarnpkg.com/debian/pubkey.gpg \
-        | apt-key add - > /dev/null && \
-    echo "deb https://dl.yarnpkg.com/debian/ stable main" \
-        | tee /etc/apt/sources.list.d/yarn.list > /dev/null && \
-    apt-get update -qq > /dev/null && \
-    apt-get install -qq yarn > /dev/null && \
-    rm -rf /var/lib/apt/lists/ && \
-    npm install --quiet -g npm > /dev/null && \
-    npm install --quiet -g \
-        bower \
-        cordova \
-        eslint \
-        gulp \
-        ionic \
-        jshint \
-        karma-cli \
-        mocha \
-        node-gyp \
-        npm-check-updates \
-        react-native-cli > /dev/null && \
-    npm cache clean --force > /dev/null && \
-    rm -rf /tmp/* /var/tmp/*
+    ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone 
+
+    # echo "nodejs, npm, cordova, ionic, react-native" && \
+    # curl -sL -k https://deb.nodesource.com/setup_${NODE_VERSION} \
+    #     | bash - > /dev/null && \
+    # apt-get install -qq nodejs > /dev/null && \
+    # apt-get clean > /dev/null && \
+    # curl -sS -k https://dl.yarnpkg.com/debian/pubkey.gpg \
+    #     | apt-key add - > /dev/null && \
+    # echo "deb https://dl.yarnpkg.com/debian/ stable main" \
+    #     | tee /etc/apt/sources.list.d/yarn.list > /dev/null && \
+    # apt-get update -qq > /dev/null && \
+    # apt-get install -qq yarn > /dev/null && \
+    # rm -rf /var/lib/apt/lists/ && \
+    # npm install --quiet -g npm > /dev/null && \
+    # npm install --quiet -g \
+    #     bower \
+    #     cordova \
+    #     eslint \
+    #     gulp \
+    #     ionic \
+    #     jshint \
+    #     karma-cli \
+    #     mocha \
+    #     node-gyp \
+    #     npm-check-updates \
+    #     react-native-cli > /dev/null && \
+    # npm cache clean --force > /dev/null && \
+    # rm -rf /tmp/* /var/tmp/*
 
 # Install Android SDK
 RUN echo "sdk tools ${ANDROID_SDK_TOOLS_VERSION}" && \
@@ -151,40 +152,40 @@ RUN echo "build tools 25-30" && \
         "build-tools;25.0.3" "build-tools;25.0.2" \
         "build-tools;25.0.1" "build-tools;25.0.0" > /dev/null
 
-RUN echo "emulator" && \
-    yes | "$ANDROID_HOME"/tools/bin/sdkmanager "emulator" > /dev/null
+# RUN echo "emulator" && \
+#     yes | "$ANDROID_HOME"/tools/bin/sdkmanager "emulator" > /dev/null
 
 RUN echo "kotlin" && \
     wget --quiet -O sdk.install.sh "https://get.sdkman.io" && \
     bash -c "bash ./sdk.install.sh > /dev/null && source ~/.sdkman/bin/sdkman-init.sh && sdk install kotlin" && \
     rm -f sdk.install.sh
 
-RUN echo "Flutter sdk" && \
-    cd /opt && \
-    wget --quiet https://storage.googleapis.com/flutter_infra/releases/stable/linux/flutter_linux_2.0.2-stable.tar.xz -O flutter.tar.xz && \
-    tar xf flutter.tar.xz && \
-    flutter config --no-analytics && \
-    rm -f flutter.tar.xz
+# RUN echo "Flutter sdk" && \
+#     cd /opt && \
+#     wget --quiet https://storage.googleapis.com/flutter_infra/releases/stable/linux/flutter_linux_2.0.2-stable.tar.xz -O flutter.tar.xz && \
+#     tar xf flutter.tar.xz && \
+#     flutter config --no-analytics && \
+#     rm -f flutter.tar.xz
 
 # Copy sdk license agreement files.
 RUN mkdir -p $ANDROID_HOME/licenses
 COPY sdk/licenses/* $ANDROID_HOME/licenses/
 
 # Create some jenkins required directory to allow this image run with Jenkins
-RUN mkdir -p /var/lib/jenkins/workspace && \
-    mkdir -p /home/jenkins && \
-    chmod 777 /home/jenkins && \
-    chmod 777 /var/lib/jenkins/workspace && \
-    chmod 777 $ANDROID_HOME/.android
+# RUN mkdir -p /var/lib/jenkins/workspace && \
+#     mkdir -p /home/jenkins && \
+#     chmod 777 /home/jenkins && \
+#     chmod 777 /var/lib/jenkins/workspace && \
+#     chmod 777 $ANDROID_HOME/.android
 
-COPY Gemfile /Gemfile
+# COPY Gemfile /Gemfile
 
-RUN echo "fastlane" && \
-    cd / && \
-    gem install bundler --quiet --no-document > /dev/null && \
-    mkdir -p /.fastlane && \
-    chmod 777 /.fastlane && \
-    bundle install --quiet
+# RUN echo "fastlane" && \
+#     cd / && \
+#     gem install bundler --quiet --no-document > /dev/null && \
+#     mkdir -p /.fastlane && \
+#     chmod 777 /.fastlane && \
+#     bundle install --quiet
 
 COPY README.md /README.md
 
@@ -199,9 +200,9 @@ ENV BUILD_DATE=${BUILD_DATE} \
     DOCKER_TAG=${DOCKER_TAG}
 
 # labels, see http://label-schema.org/
-LABEL maintainer="Ming Chen"
+LABEL maintainer="Etby Gao"
 LABEL org.label-schema.schema-version="1.0"
-LABEL org.label-schema.name="mingc/android-build-box"
+LABEL org.label-schema.name="etby/android-build-box"
 LABEL org.label-schema.version="${DOCKER_TAG}"
 LABEL org.label-schema.usage="/README.md"
 LABEL org.label-schema.docker.cmd="docker run --rm -v `pwd`:/project mingc/android-build-box bash -c 'cd /project; ./gradlew build'"
