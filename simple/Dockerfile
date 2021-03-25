@@ -50,10 +50,6 @@ RUN apt-get update -qq > /dev/null && \
         git \
         gpg-agent \
         less \
-        lib32stdc++6 \
-        lib32z1 \
-        lib32z1-dev \
-        lib32ncurses5 \
         libc6-dev \
         libgmp-dev \
         libmpc-dev \
