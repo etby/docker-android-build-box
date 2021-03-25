@@ -47,8 +47,11 @@ jobs:
           # Use Docker `latest` tag convention
           [ "$VERSION" == "master" ] && VERSION=latest
 
+          # Simple add postfix
+          VERSION=${VERSION}-simple
+
           echo IMAGE_ID=$IMAGE_ID
           echo VERSION=$VERSION
 
-          docker tag $IMAGE_NAME $IMAGE_ID:${VERSION}-simple
+          docker tag $IMAGE_NAME $IMAGE_ID:${VERSION}
           docker push $IMAGE_ID:$VERSION
