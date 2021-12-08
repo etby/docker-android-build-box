@@ -1,48 +1,48 @@
 # Docker Android Build Box
 
 [![docker icon](https://dockeri.co/image/mingc/android-build-box)](https://hub.docker.com/r/mingc/android-build-box/)
-[![Build Status](https://travis-ci.org/mingchen/docker-android-build-box.svg?branch=master)](https://travis-ci.org/mingchen/docker-android-build-box)
-
+[![Docker Image CI](https://github.com/mingchen/docker-android-build-box/actions/workflows/docker-image.yml/badge.svg)](https://github.com/mingchen/docker-android-build-box/actions/workflows/docker-image.yml)
 
 ## Introduction
 
-An optimized **docker** image includes **Android**, **Kotlin**, **Flutter sdk**.
-
+An optimized **Docker** image that includes the **Android SDK** and **Flutter SDK**.
 
 ## What Is Inside
 
 It includes the following components:
 
-* Ubuntu 18.04
-* Android SDKs
-  * 25
+* Ubuntu 20.04
+* Java (OpenJDK)
+  * 1.8
+  * 11
+* Android SDKs for platforms:
   * 26
   * 27
   * 28
   * 29
   * 30
+  * 31
 * Android build tools:
-  * 25.0.0 25.0.1 25.0.2 25.0.3
   * 26.0.0 26.0.1 26.0.2
   * 27.0.1 27.0.2 27.0.3
   * 28.0.1 28.0.2 28.0.3
   * 29.0.2 29.0.3
-  * 30.0.0
-* Android NDK r21
+  * 30.0.0 30.0.2 30.0.3
+  * 31.0.0
+* Android NDK (always the latest version, side-by-side install)
 * Android Emulator
 * TestNG
-* Python 2, Python 3
-* Node.js, npm, React Native
+* Python 3.8.10
+* Node.js 14, npm, React Native
 * Ruby, RubyGems
 * fastlane
-* Kotlin 1.3
-* Flutter 1.22.0
-
+* Flutter 2.5.1
+* jenv
 
 ## Pull Docker Image
 
-The docker image is publicly automated build on [Docker Hub](https://hub.docker.com/r/mingc/android-build-box/)
-based on the Dockerfile in this repo, so there is no hidden stuff in it. To pull the latest docker image:
+The docker image is a publicly automated build on [Docker Hub](https://hub.docker.com/r/mingc/android-build-box/)
+based on the `Dockerfile` in this repo, so there is no hidden stuff in it. To pull the latest docker image:
 
 ```sh
 docker pull mingc/android-build-box:latest
@@ -50,8 +50,8 @@ docker pull mingc/android-build-box:latest
 
 **Hint:** You can use a tag to a specific stable version,
 rather than `latest` of docker image, to avoid breaking your build.
-e.g. `mingc/android-build-box:1.19.0`.
-Checkout [**Tags**](#tags) (bottom of this page) to see all the available tags.
+e.g. `mingc/android-build-box:1.22.0`.
+Take a look at the [**Tags**](#tags) section, at the bottom of this page, to see all the available tags.
 
 ## Usage
 
@@ -64,10 +64,30 @@ cd <android project directory>  # change working directory to your project root 
 docker run --rm -v `pwd`:/project mingc/android-build-box bash -c 'cd /project; ./gradlew build'
 ```
 
+To build `.aab` bundle release, use `./gradlew bundleRelease`:
+
+```sh
+cd <android project directory>  # change working directory to your project root directory.
+docker run --rm -v `pwd`:/project mingc/android-build-box bash -c 'cd /project; ./gradlew bundleRelease'
+```
+
+
 Run docker image with interactive bash shell:
 
 ```sh
 docker run -v `pwd`:/project -it mingc/android-build-box bash
+```
+
+Add the following arguments to the docker command to cache the home gradle folder:
+
+```sh
+-v "$HOME/.dockercache/gradle":"/root/.gradle"
+```
+
+e.g.
+
+```sh
+docker run --rm -v `pwd`:/project  -v "$HOME/.dockercache/gradle":"/root/.gradle"   mingc/android-build-box bash -c 'cd /project; ./gradlew build'
 ```
 
 ### Build an Android project with [Bitbucket Pipelines](https://bitbucket.org/product/features/pipelines)
@@ -155,26 +175,43 @@ Using guidelines from...
 export ADB_INSTALL_TIMEOUT=30
 
 # Download an ARM system image to create an ARM emulator.
-sdkmanager "system-images;android-16;default;armeabi-v7a"
+sdkmanager "system-images;android-22;default;armeabi-v7a"
 
 # Create an ARM AVD emulator, with a 100 MB SD card storage space. Echo "no"
 # because it will ask if you want to use a custom hardware profile, and you don't.
 # https://medium.com/@AndreSand/android-emulator-on-docker-container-f20c49b129ef
 echo "no" | avdmanager create avd \
-    -n Android_4.1_API_16 \
-    -k "system-images;android-16;default;armeabi-v7a" \
+    -n Android_5.1_API_22 \
+    -k "system-images;android-22;default;armeabi-v7a" \
     -c 100M \
     --force
 
 # Launch the emulator in the background
-$ANDROID_HOME/emulator/emulator -avd Android_4.1_API_16 -no-skin -no-audio -no-window -no-boot-anim -gpu off &
+$ANDROID_HOME/emulator/emulator -avd Android_5.1_API_22 -no-skin -no-audio -no-window -no-boot-anim -gpu off &
 
 # Note: You will have to add a suitable time delay, to wait for the emulator to launch.
 ```
 
 Note that x86_64 emulators are not currently supported. See [Issue #18](https://github.com/mingchen/docker-android-build-box/issues/18) for details.
 
-## Docker Build Image
+### Choose the system Java version
+
+Both Java 1.8 and Java 11 are installed. As of version 1.20, `jenv` can be used to switch between different versions of Java.
+
+| docker-android-build-box version  | Date released  | Java version available  |
+|---|---|---|
+| 1.19 and below  | 2 July 2020 and earlier  |  **Java 8** installed only |
+| 1.20 - 1.23  | 7 August 2020 - 23 Sept 2021  |  Both **Java 8 and Java 11** installed. <br>The default is Java 8. |
+| 1.23.1  | 28 September 2021  |  Both **Java 8 and Java 11** installed. <br>The default is Java 11. |
+
+The following example sets Java to version 8:
+
+```sh
+. $HOME/.bash_profile   # Enable jenv
+jenv local 8            # Set current Java env to 8
+```
+
+## Build the Docker Image
 
 If you want to build the docker image by yourself, you can use following command.
 The image itself is around 5 GB, so check your free disk space before building it.
@@ -186,12 +223,47 @@ docker build -t android-build-box .
 ## Tags
 
 You can use a tag to a specific stable version, rather than `latest` of docker image,
-to avoid breaking your build. For example `mingc/android-build-box:1.19.0`
+to avoid breaking your build. For example `mingc/android-build-box:1.22.0`
 
 **Note**: versions `1.0.0` up to `1.17.0` included every single Build Tool version and every
 Android Platform version available. This generated large Docker images, around 5 GB.
 Newer versions of `android-build-box` only include a subset of the newest Android Tools,
 so the Docker images are smaller.
+
+## 1.24.0
+
+* PR #76: Tidy up to reduce image size @ozmium
+
+## 1.23.1
+
+* Remove JDK 16, Android build not support JDK 16 yet.
+
+## 1.23.0
+
+ **NOTE**: missed this tag in DockerHub due to a github action error, should use `1.23.1` instead.
+
+* Upgrade Flutter 2.2.0 to 2.5.1
+* PR #71: Ubuunt 20.04, JDK 16, gradle 7.2 @sedwards
+* Fix #57: Correct repositories.cfg path
+* Add jenv to choose java version
+
+## 1.22.0
+
+* Upgrade Nodejs from 12.x to 14.x
+* Push image to docker hub from github action directly.
+
+## 1.21.1
+
+* Update dockerhub build hook.
+
+## 1.21.0
+
+* Upgrade Flutter to 2.2.0
+* CI switched from travis-ci to Github Action.
+* PR #63: Add cache gradle to README @dewijones92
+* PR #62: Make the Android SDK directory writeable @DanDevine
+* Fix #60: Remove BUNDLE_GEMFILE env.
+* PR #59: Fix #58: Updated README: Run emulator with ADB_INSTALL_TIMEOUT @felHR85
 
 ### 1.20.0
 
